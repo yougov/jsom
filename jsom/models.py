@@ -1,5 +1,9 @@
 class ModelMeta(type):
-    def __init__(cls, name, bases, attr_dict):
+    # For now, pytest starts covering after the tests get collected, therefore
+    # it's not able to cover this metaclass. As soon as we fix it, and have
+    # the module loaded after coverage is already running, we can remove
+    # the "pragma: no cover" below.
+    def __init__(cls, name, bases, attr_dict):  # pragma: no cover
         for key, attr in attr_dict.items():
             if isinstance(attr, Field) and attr._name is None:
                 attr._name = key
