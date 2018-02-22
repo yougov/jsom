@@ -1,0 +1,10 @@
+codeclimate-test-reporter
+coverage
+flake8
+jsonschema
+Paver
+pip-tools
+pytest
+setuptools-scm
+tox
+tox-travis
