@@ -51,28 +51,6 @@ class ModelTest(TestCase):
         with self.assertRaises(ValidationError):
             validate(input_data, schema_data)
 
-    def test_builds_schema_for_integer_data(self):
-        class SomeModel(models.Model):
-            age = models.IntegerField()
-
-        schema_data = SomeModel.as_schema()
-        input_data = {
-            'age': 22,
-        }
-
-        validate(input_data, schema_data)
-
-    def test_builds_schema_for_float_data(self):
-        class SomeModel(models.Model):
-            height = models.FloatField()
-
-        schema_data = SomeModel.as_schema()
-        input_data = {
-            'height': 1.77,
-        }
-
-        validate(input_data, schema_data)
-
 
 class StringFieldTest(TestCase):
     def test_accepts_string(self):
@@ -108,6 +86,17 @@ class IntegerFieldTest(TestCase):
         with self.assertRaises(ValueError):
             model.age = 'twenty-two'
 
+    def test_is_referenced_in_schema_as_integer(self):
+        class SomeModel(models.Model):
+            age = models.IntegerField()
+
+        schema_data = SomeModel.as_schema()
+        input_data = {
+            'age': 22,
+        }
+
+        validate(input_data, schema_data)
+
 
 class FloatFieldTest(TestCase):
     def test_accepts_float(self):
@@ -127,3 +116,14 @@ class FloatFieldTest(TestCase):
 
         with self.assertRaises(ValueError):
             model.height = 'very tall'
+
+    def test_is_referenced_in_schema_as_number(self):
+        class SomeModel(models.Model):
+            height = models.FloatField()
+
+        schema_data = SomeModel.as_schema()
+        input_data = {
+            'height': 1.77,
+        }
+
+        validate(input_data, schema_data)
