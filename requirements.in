@@ -5,6 +5,7 @@ jsonschema
 Paver
 pip-tools
 pytest
+pytest-cov
 setuptools-scm
 tox
 tox-travis
