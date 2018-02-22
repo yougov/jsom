@@ -1,5 +1,6 @@
 coverage>=4.0,<4.4
 flake8
+ipdb
 jsonschema
 Paver
 pip-tools

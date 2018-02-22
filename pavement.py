@@ -29,7 +29,7 @@ def test():
 
 @task
 def lint():
-    sh('flake8 jsom')
+    sh('flake8 jsom tests')
 
 
 @task
