@@ -35,6 +35,10 @@ class Model:
         return schema_data
 
     @classmethod
+    def from_data(cls, data: dict):
+        return cls.create(**data)
+
+    @classmethod
     def create(cls, **kwargs):
         instance = cls()
         for k, v in kwargs.items():

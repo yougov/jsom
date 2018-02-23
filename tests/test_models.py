@@ -51,6 +51,13 @@ class ModelTest(TestCase):
         with self.assertRaises(ValidationError):
             validate(input_data, schema_data)
 
+    def test_builds_a_model_instance_from_valid_data(self):
+        model = SimpleModel.from_data({
+            'name': 'Foo',
+        })
+
+        self.assertEqual(model.name, 'Foo')
+
 
 class StringFieldTest(TestCase):
     def test_accepts_string(self):
@@ -68,60 +75,55 @@ class StringFieldTest(TestCase):
 
 
 class IntegerFieldTest(TestCase):
-    def test_accepts_integer(self):
-        class SomeModel(models.Model):
-            age = models.IntegerField()
+    class SomeModel(models.Model):
+        age = models.IntegerField()
 
-        model = SomeModel()
+    def test_accepts_integer(self):
+        model = self.SomeModel()
         model.age = 22
 
         self.assertEqual(model.age, 22)
 
     def test_doesnt_accept_string(self):
-        class SomeModel(models.Model):
-            age = models.IntegerField()
-
-        model = SomeModel()
+        model = self.SomeModel()
 
         with self.assertRaises(ValueError):
             model.age = 'twenty-two'
 
     def test_is_referenced_in_schema_as_integer(self):
-        class SomeModel(models.Model):
-            age = models.IntegerField()
-
-        schema_data = SomeModel.as_schema()
+        schema_data = self.SomeModel.as_schema()
         input_data = {
             'age': 22,
         }
 
         validate(input_data, schema_data)
 
+    def test_translates_data_to_internal_type(self):
+        model = self.SomeModel.from_data({
+            'age': 22,
+        })
+
+        self.assertEqual(model.age, 22)
+
 
 class FloatFieldTest(TestCase):
-    def test_accepts_float(self):
-        class SomeModel(models.Model):
-            height = models.FloatField()
+    class SomeModel(models.Model):
+        height = models.FloatField()
 
-        model = SomeModel()
+    def test_accepts_float(self):
+        model = self.SomeModel()
         model.height = 1.77
 
         self.assertEqual(model.height, 1.77)
 
     def test_doesnt_accept_string(self):
-        class SomeModel(models.Model):
-            height = models.FloatField()
-
-        model = SomeModel()
+        model = self.SomeModel()
 
         with self.assertRaises(ValueError):
             model.height = 'very tall'
 
     def test_is_referenced_in_schema_as_number(self):
-        class SomeModel(models.Model):
-            height = models.FloatField()
-
-        schema_data = SomeModel.as_schema()
+        schema_data = self.SomeModel.as_schema()
         input_data = {
             'height': 1.77,
         }
