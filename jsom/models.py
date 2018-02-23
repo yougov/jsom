@@ -1,4 +1,5 @@
 from datetime import date, datetime
+from enum import Enum
 
 
 class ModelMeta(type):
@@ -31,12 +32,7 @@ class Model:
             if v.required:
                 schema_data.setdefault('required', [])
                 schema_data['required'].append(k)
-            definition = {
-                'type': v.SCHEMA_TYPE,
-            }
-            if v.FORMAT is not None:
-                definition['format'] = v.FORMAT
-            schema_data['properties'][k] = definition
+            schema_data['properties'][k] = v.as_property()
 
         return schema_data
 
@@ -70,8 +66,11 @@ class Field:
         self.required = required
 
     def __set__(self, obj, value) -> None:
-        if not isinstance(value, self.TYPE):
-            raise ValueError('Not a {!r}: {!r}'.format(self.TYPE, value))
+        type_ = self.get_type()
+        if not isinstance(value, type_):
+            raise ValueError('Not a {!r}: {!r}'.format(type_, value))
+
+        self.validate(value)
 
         self._value = value
 
@@ -80,6 +79,21 @@ class Field:
 
     def decode(self, value):
         return value
+
+    def validate(self, value):
+        pass
+
+    def get_type(self):
+        return self.TYPE
+
+    def as_property(self):
+        definition = {
+            'type': self.SCHEMA_TYPE,
+        }
+        if self.FORMAT is not None:
+            definition['format'] = self.FORMAT
+
+        return definition
 
 
 class StringField(Field):
@@ -104,3 +118,23 @@ class DateField(Field):
 
     def decode(self, value):
         return datetime.strptime(value, '%Y-%m-%d').date()
+
+
+class EnumField(Field):
+    TYPE = Enum
+    SCHEMA_TYPE = 'enum'
+
+    def __init__(self, options: Enum, required=False):
+        super().__init__(required=required)
+        self.options = options
+
+    def get_type(self):
+        return self.options
+
+    def as_property(self):
+        return {
+            'enum': list(self.options.__members__),
+        }
+
+    def decode(self, value):
+        return self.options.__members__[value]

@@ -1,3 +1,4 @@
+import enum
 from datetime import date
 from unittest import TestCase
 
@@ -8,6 +9,16 @@ from jsom import models
 
 class SimpleModel(models.Model):
     name = models.StringField(required=False)
+
+
+class Fruits(enum.Enum):
+    banana = 1
+    apple = 2
+
+
+class Colors(enum.Enum):
+    red = 1
+    blue = 2
 
 
 class ModelTest(TestCase):
@@ -169,3 +180,41 @@ class DateFieldTest(TestCase):
         })
 
         self.assertEqual(model.when, date(2018, 1, 1))
+
+
+class EnumFieldTest(TestCase):
+    class SomeModel(models.Model):
+        fruit = models.EnumField(options=Fruits)
+
+    def test_accepts_local_enum(self):
+        model = self.SomeModel()
+        model.fruit = Fruits.banana
+
+        self.assertEqual(model.fruit, Fruits.banana)
+
+    def test_doesnt_accept_string(self):
+        model = self.SomeModel()
+
+        with self.assertRaises(ValueError):
+            model.fruit = 'passion fruit'
+
+    def test_doesnt_accept_another_enum(self):
+        model = self.SomeModel()
+
+        with self.assertRaises(ValueError):
+            model.fruit = Colors.red
+
+    def test_is_referenced_in_schema_as_enum(self):
+        schema_data = self.SomeModel.as_schema()
+        input_data = {
+            'fruit': 'banana',
+        }
+
+        validate(input_data, schema_data)
+
+    def test_translates_data_to_internal_type(self):
+        model = self.SomeModel.from_data({
+            'fruit': 'banana',
+        })
+
+        self.assertEqual(model.fruit, Fruits.banana)
