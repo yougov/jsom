@@ -1,3 +1,4 @@
+from datetime import date
 from unittest import TestCase
 
 from jsonschema import ValidationError, validate
@@ -129,3 +130,42 @@ class FloatFieldTest(TestCase):
         }
 
         validate(input_data, schema_data)
+
+    def test_translates_data_to_internal_type(self):
+        model = self.SomeModel.from_data({
+            'height': 1.77,
+        })
+
+        self.assertEqual(model.height, 1.77)
+
+
+class DateFieldTest(TestCase):
+    class SomeModel(models.Model):
+        when = models.DateField()
+
+    def test_accepts_date(self):
+        model = self.SomeModel()
+        model.when = date(2018, 1, 1)
+
+        self.assertEqual(model.when, date(2018, 1, 1))
+
+    def test_doesnt_accept_string(self):
+        model = self.SomeModel()
+
+        with self.assertRaises(ValueError):
+            model.when = 'very late'
+
+    def test_is_referenced_in_schema_as_date(self):
+        schema_data = self.SomeModel.as_schema()
+        input_data = {
+            'when': '2018-01-01',
+        }
+
+        validate(input_data, schema_data)
+
+    def test_translates_data_to_internal_type(self):
+        model = self.SomeModel.from_data({
+            'when': '2018-01-01',
+        })
+
+        self.assertEqual(model.when, date(2018, 1, 1))

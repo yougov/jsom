@@ -1,3 +1,6 @@
+from datetime import date, datetime
+
+
 class ModelMeta(type):
     # For now, pytest starts covering after the tests get collected, therefore
     # it's not able to cover this metaclass. As soon as we fix it, and have
@@ -28,15 +31,25 @@ class Model:
             if v.required:
                 schema_data.setdefault('required', [])
                 schema_data['required'].append(k)
-            schema_data['properties'][k] = {
+            definition = {
                 'type': v.SCHEMA_TYPE,
             }
+            if v.FORMAT is not None:
+                definition['format'] = v.FORMAT
+            schema_data['properties'][k] = definition
 
         return schema_data
 
     @classmethod
     def from_data(cls, data: dict):
-        return cls.create(**data)
+        instance = cls()
+
+        for k, v in data.items():
+            field = cls.__dict__[k]
+            decoded = field.decode(v)
+            setattr(instance, k, decoded)
+
+        return instance
 
     @classmethod
     def create(cls, **kwargs):
@@ -51,6 +64,7 @@ class Model:
 class Field:
     TYPE = object
     SCHEMA_TYPE = None
+    FORMAT = None
 
     def __init__(self, required=False):
         self.required = required
@@ -63,6 +77,9 @@ class Field:
 
     def __get__(self, obj, objtype=None):
         return self._value
+
+    def decode(self, value):
+        return value
 
 
 class StringField(Field):
@@ -78,3 +95,12 @@ class IntegerField(Field):
 class FloatField(Field):
     TYPE = float
     SCHEMA_TYPE = 'number'
+
+
+class DateField(Field):
+    TYPE = date
+    SCHEMA_TYPE = 'string'
+    FORMAT = 'date'
+
+    def decode(self, value):
+        return datetime.strptime(value, '%Y-%m-%d').date()
