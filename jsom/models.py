@@ -16,6 +16,9 @@ class ModelMeta(type):
 class Model:
     __metaclass__ = ModelMeta
 
+    def __init__(self):
+        self._values = {}
+
     @classmethod
     def as_schema(cls):
         schema_data = {
@@ -57,25 +60,37 @@ class Model:
         return instance
 
 
+class Sentinel(object):
+    pass
+
+
 class Field:
     TYPE = object
     SCHEMA_TYPE = None
     FORMAT = None
 
-    def __init__(self, required=False):
+    def __init__(self, required=False, default=Sentinel):
         self.required = required
+        self._value = None
+        self._name = None
+        self._default = default
 
-    def __set__(self, obj, value) -> None:
+    def __set__(self, obj: Model, value) -> None:
         type_ = self.get_type()
         if not isinstance(value, type_):
             raise ValueError('Not a {!r}: {!r}'.format(type_, value))
 
         self.validate(value)
 
-        self._value = value
+        obj._values[self._name] = value
 
-    def __get__(self, obj, objtype=None):
-        return self._value
+    def __get__(self, obj: Model, objtype=None):
+        try:
+            return obj._values[self._name]
+        except KeyError:
+            if self._default is not Sentinel:
+                return self._default
+            raise AttributeError('{} field has no value')
 
     def decode(self, value):
         return value

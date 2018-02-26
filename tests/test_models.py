@@ -24,10 +24,10 @@ class Colors(enum.Enum):
 class ModelTest(TestCase):
     def test_creates_simple_model(self):
         model = SimpleModel.create(
-            name='Foo',
+            name='Foo1',
         )
 
-        self.assertEqual(model.name, 'Foo')
+        self.assertEqual(model.name, 'Foo1')
 
     def test_cannot_create_with_inexisting_field(self):
         with self.assertRaises(AttributeError):
@@ -38,7 +38,7 @@ class ModelTest(TestCase):
     def test_builds_schema_for_valid_data(self):
         schema_data = SimpleModel.as_schema()
         input_data = {
-            'name': 'Foo',
+            'name': 'Foo2',
         }
 
         validate(input_data, schema_data)
@@ -65,10 +65,35 @@ class ModelTest(TestCase):
 
     def test_builds_a_model_instance_from_valid_data(self):
         model = SimpleModel.from_data({
-            'name': 'Foo',
+            'name': 'Foo3',
         })
 
-        self.assertEqual(model.name, 'Foo')
+        self.assertEqual(model.name, 'Foo3')
+
+
+class FieldTest(TestCase):
+    def test_does_not_interfere_with_class_attributes(self):
+        SimpleModel.create(name='Foo')
+        model = SimpleModel()
+
+        with self.assertRaises(AttributeError):
+            model.name
+
+    def test_uses_default_value_if_needed(self):
+        class EmptyModel(models.Model):
+            something = models.Field(default='my-default')
+
+        model = EmptyModel()
+
+        self.assertEqual(model.something, 'my-default')
+
+    def test_accepts_none_as_default(self):
+        class EmptyModel(models.Model):
+            something = models.Field(default=None)
+
+        model = EmptyModel()
+
+        self.assertIsNone(model.something)
 
 
 class StringFieldTest(TestCase):
