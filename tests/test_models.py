@@ -7,6 +7,14 @@ from jsonschema import ValidationError, validate
 from jsom import models
 
 
+class ModelMetaTest(TestCase):
+    def test_empty_new(self):
+        models.ModelMeta('ModelCls', (), {})
+
+    def test_new_with_field(self):
+        models.ModelMeta('ModelCls', (), dict(myfield=models.Field()))
+
+
 class SimpleModel(models.Model):
     name = models.StringField(required=False)
 
